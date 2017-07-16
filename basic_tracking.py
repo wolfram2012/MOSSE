@@ -118,15 +118,52 @@ import ocof
 import os.path
 import cv
 import time
+import copy
 
 TAZ_FILENAME = os.path.join(ocof.__path__[0],'test','data','capture1.mp4')
+global TAZ_RECT
 TAZ_RECT = pv.Rect(200,200,120,120)
 
-print TAZ_FILENAME
+# print TAZ_FILENAME
 video = pv.Video(TAZ_FILENAME)
 webcam = pv.Webcam()
 
 tracker = None
+
+global startPointx   
+global startPointy   
+global flagDraw   
+global src
+startPointx = 0  
+startPointy = 0  
+flagDraw = False
+
+def onMouseEvent(event,x,y,flags,param):  
+    global startPointx   
+    global startPointy   
+    global flagDraw    
+    # print event
+    if(event==1):  
+        print "Position is: %d,%d" ,x,y   
+        startPointx = x  
+        startPointy = y  
+        flagDraw = True  
+    if(event==0):  
+        if(flagDraw==True):  
+            image = cv.CloneImage(src) 
+            cv.Rectangle(image, (startPointx,startPointy), (x,y), (255,0,0),3)  
+            cv.ShowImage('window', image)  
+             
+            print "EndPosition is: %d,%d" ,x,y    
+    if(event==4):  
+        if(flagDraw==True):  
+            image = cv.CloneImage(src)
+            cv.Rectangle(image, (startPointx,startPointy), (x,y), (255,0,0),3)  
+            cv.ShowImage('window', image)  
+            flagDraw = False
+            global TAZ_RECT
+            TAZ_RECT = pv.Rect(startPointx,startPointy,x-startPointx,y-startPointy)
+
 
 # ilog = pv.ImageLog()
 
@@ -136,12 +173,26 @@ for frame in webcam:
     # print frame.channels
     # print isinstance(frame,cv.iplimage)
     if tracker == None:
+        global src
+        src = cv.CloneImage(frame.asOpenCV())
+        # cv.Rectangle(src, (200,200), (320,320), (255,0,0),3)
+        cv.ShowImage('window', src )
+        cv.SetMouseCallback('window', onMouseEvent) 
+        cv.WaitKey()
         tracker = ocof.MOSSETrack(frame,TAZ_RECT)
     else:
         start = time.time()
         tracker.update(frame)
         stop = time.time()
-        # print "period:",(stop-start)
+        print "period:",(stop-start)
+
+        rect = tracker.rect
+        print rect
+        image = cv.CloneImage(frame.asOpenCV())
+        cv.Rectangle(image, ((int)(rect.x),(int)(rect.y)), ((int)(rect.x+rect.w),(int)(rect.y+rect.h)), (255,0,0),2)  
+        cv.ShowImage('window2', image)
+        if cv.WaitKey(1) & 0xFF == ord('q'):
+            break
 
     # cv.NamedWindow('window')
     # cv.ShowImage('window', frame.asOpenCV() )

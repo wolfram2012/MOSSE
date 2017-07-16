@@ -568,9 +568,9 @@ class AffineTransform:
             dst = cv.CreateImage( (self.size[0],self.size[1]), cv.IPL_DEPTH_8U, src.nChannels );
             cv.WarpPerspective( src, dst, matrix, cv.CV_INTER_LINEAR+cv.CV_WARP_FILL_OUTLIERS,cv.ScalarAll(128))                    
             result = pv.Image(dst)
-            cv.NamedWindow('window2')
-            cv.ShowImage('window2', dst )
-            cv.WaitKey()
+            # cv.NamedWindow('window2')
+            # cv.ShowImage('window2', dst )
+            # cv.WaitKey()
 
         else:
             raise NotImplementedError("Unhandled image type for affine transform.")
